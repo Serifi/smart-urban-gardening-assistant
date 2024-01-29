@@ -185,6 +185,7 @@ onMounted(async () => {
     await getPlants()
     await getUserPlant()
     await getEnvironmentalConditionByPlant()
+    getEnvironmentalCondition() //Umweltbedingungen sofort einlesen
     setInterval(getEnvironmentalCondition, 60000) //Umweltbedingungen minütlich einlesen
   }
 })
