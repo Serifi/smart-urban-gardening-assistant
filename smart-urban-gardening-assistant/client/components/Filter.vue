@@ -41,6 +41,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import axios from 'axios'
 
 const emit = defineEmits(["filter-plant"])
 const props = defineProps(['plants', 'environmentalConditions'])

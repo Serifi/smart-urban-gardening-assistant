@@ -167,7 +167,7 @@ router.delete('/user/:userId/plants/:plantId', async (req, res) => {
 })
 
 // GET Umweltbedingungen ============================================================================================================
-router.get('/environmentalconditions', async (req, res) => {
+router.get('/environmentalConditionByPlant', async (req, res) => {
   try {
     const [results] = await pool.query('SELECT * FROM EnvironmentalCondition')
     res.json(results)

@@ -100,6 +100,15 @@ const getUserPlant = async () => {
   }
 }
 
+const getEnvironmentalConditionByPlant = async () => {
+  try {
+    const response = await axios.get(`http://localhost:3001/environmentalConditionByPlant`)
+    environmentalConditionByPlant.value = response.data
+  } catch (error) {
+    console.error('Fehler beim Get der Umweltbedingungen:', error)
+  }
+}
+
 async function deleteUserPlant(plantId) {
   try {
     await axios.delete(`http://localhost:3001/user/${store.getters.getUser.ID}/plants/${plantId}`)
@@ -127,9 +136,23 @@ const addUserPlant = (plantChosen) => {
   plantsByUser.value.forEach(plant => !plant.status && (plant.status = 'Ideal'))
 }
 
-function setStatus(){
-  plants.value.forEach((plant) => {
-  
+function setStatus() {
+  plantsByUser.value.forEach((plant) => {
+    const matchingCondition = environmentalConditionByPlant.find((condition) => condition.plantID === plant.ID)
+
+    let status = "Deficient"
+    if (
+      humidity >= matchingCondition.idealHumMin && humidity <= matchingCondition.idealHumMax &&
+      lightIntensity >= matchingCondition.idealLightMin && lightIntensity <= matchingCondition.idealLightMax &&
+      temperature >= matchingCondition.idealTempMin && temperature <= matchingCondition.idealTempMax
+    ) status = "Ideal"
+    else if (
+      humidity >= matchingCondition.acceptHumMin && humidity <= matchingCondition.acceptHumMax &&
+      lightIntensity >= matchingCondition.acceptLightMin && lightIntensity <= matchingCondition.acceptLightMax &&
+      temperature >= matchingCondition.acceptTempMin && temperature <= matchingCondition.acceptTempMax
+    ) status = "Acceptable"
+
+    plant.status = status
   })
 }
 
@@ -138,7 +161,16 @@ onMounted(async () => {
   else {
     await getPlants()
     await getUserPlant()
-    // setStatus()
+    await getEnvironmentalConditionByPlant()
+    try {
+      const response = await axios.get('http://192.168.178.31:80/environmentalCondition')
+      environmentalConditions.value[2].value = response.data.lightIntensity
+      environmentalConditions.value[1].value = response.data.humidity
+      environmentalConditions.value[0].value = response.data.temperature
+      setStatus()
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   }
 })
 </script>
