@@ -54,7 +54,7 @@
       <div class="flex-col space-y-4">
         <div class="flex flex-col space-y-2">
           <label for="oldPassword" class="font-bold">{{ $t('oldPassword') }}</label>
-          <InputText id="oldPassword" v-model="oldPassword" class="border py-2 px-4 rounded"/>
+          <Password id="oldPassword" v-model="oldPassword" toggleMask :feedback="false" class="border rounded"/>
         </div>
         <div class="flex flex-col space-y-2">
           <label for="newPassword" class="font-bold">{{ $t('newPassword') }}</label>
@@ -149,6 +149,11 @@ async function updatePassword() {
   newPasswordLikeOldPasswort.value = false
   newPasswordsNotMatching.value = false
 
+  if (store.getters.getUser.password !== oldPassword.value) {
+    wrongOldPassword.value = true
+    return
+  }
+
   if (newPassword.value !== newPasswordRepeat.value) {
     newPasswordsNotMatching.value = true
     return
@@ -161,17 +166,14 @@ async function updatePassword() {
 
   try {
     const response = await axios.put(`http://localhost:3001/users/${store.getters.getUser.ID}/password`, {
-      oldPassword: oldPassword.value,
-      newPassword: newPassword.value
+      password: newPassword.value
     })
 
     if (response.status === 200) showSettings.value = false //Passwort aktualisiert
     else console.error('Fehler beim Put des Passworts:', response.statusText)
 
   } catch (error) {
-    if (error.response && error.response.status === 401) wrongOldPassword.value = true //altes Passwort falsch
-    else console.error('Ein Fehler ist beim Aktualisieren des Passworts aufgetreten:', error)
-    
+    console.error('Fehler beim Update des Passworts:', error)
   }
 }
 

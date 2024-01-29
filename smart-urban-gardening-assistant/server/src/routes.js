@@ -100,17 +100,13 @@ router.delete('/users/:id', async (req, res) => {
 // PUT Passwort ====================================================================================================================
 router.put('/users/:id/password', async (req, res) => {
   const { id } = req.params;
-  const { oldPassword, newPassword } = req.body
+  const { password } = req.body
 
   try {
     const [user] = await pool.query('SELECT * FROM User WHERE ID = ?', [id])
     if (user.length === 0) return res.status(404).json({ message: 'User not found.' })
-    
-    const isPasswordsCorrect = await bcrypt.compare(oldPassword, user[0].password)
-    if (!isPasswordsCorrect) return res.status(401).json({ message: 'Old password is incorrect.' })
 
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10)
-    await pool.query('UPDATE User SET password = ? WHERE ID = ?', [hashedNewPassword, id])
+    await pool.query('UPDATE User SET password = ? WHERE ID = ?', [password, id])
     res.json({ message: 'Password updated successfully.' })
   } catch (error) {
     res.status(500).json({ error: 'Internal server error.' })

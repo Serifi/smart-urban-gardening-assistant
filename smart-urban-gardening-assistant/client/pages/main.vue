@@ -140,6 +140,7 @@ const addUserPlant = (plantChosen) => {
 
 function setStatus() {
   deficientPlant.value = false
+  //environmentalConditions.value[0].value = (Math.random() * (21 - 8) + 8).toFixed(2) //Testzweck ohne Embedded System
 
   plantsByUser.value.forEach((plant) => {
     const matchingCondition = environmentalConditionByPlant.value.find((condition) => condition.plantID === plant.ID)
@@ -185,6 +186,10 @@ onMounted(async () => {
     await getPlants()
     await getUserPlant()
     await getEnvironmentalConditionByPlant()
+
+    //setStatus() //Testzweck ohne Embedded System
+    //setInterval(setStatus, 5000) //Testzweck ohne Embedded System
+
     getEnvironmentalCondition() //Umweltbedingungen sofort einlesen
     setInterval(getEnvironmentalCondition, 60000) //Umweltbedingungen minütlich einlesen
   }
