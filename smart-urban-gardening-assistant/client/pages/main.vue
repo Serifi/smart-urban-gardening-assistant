@@ -3,17 +3,18 @@
     <Header @add-plant="addUserPlant" @search-plant="searchPlant" :plants="plants" :plantsByUser="plantsByUser"/>
     <Filter @filter-plant="filterPlant" :plants="plantsByUser" :environmental-conditions="environmentalConditions"/>
 
+    <Message v-if="deficientPlant" severity="error" :closable="false" class="mx-8">
+      <div class="text-sm"> {{ $t('deficientPlant') }} </div>
+    </Message>
+
     <DataTable :value="filterPlants" v-model:expandedRows="expandedPlants" @rowExpand="onRowExpand" paginator :rowsPerPageOptions="[5,10,25]" :rows="5" resizable-columns class="mt-8 mx-8 rounded shadow-lg">
       <Column expander />
       <template #expansion="slotProps">
         <div class="flex items-center">
-          <img src="../assets/images/plantExample.jpg" alt="Plant Image" class="h-[150px] rounded me-4" />
-          <div class="flex flex-col space-y-4">
-            <div><strong>{{ $t('distribution') }}:</strong> {{ slotProps.data.distribution }}</div>
-            <div><strong>{{ $t('speciesCount') }}:</strong> {{ slotProps.data.speciesCount }}</div>
-            <div><strong>{{ $t('growthHeight') }}:</strong> {{ slotProps.data.growthHeightMin }} - {{ slotProps.data.growthHeightMax }} cm</div>
-            <div><strong>{{ $t('funFact') }}:</strong> {{ slotProps.data.funFact }}</div>
-          </div>
+          <div class="flex-1"><strong>{{ $t('distribution') }}:</strong> {{ slotProps.data.distribution }}</div>
+          <div class="flex-1"><strong>{{ $t('speciesCount') }}:</strong> {{ slotProps.data.speciesCount }}</div>
+          <div class="flex-1"><strong>{{ $t('growthHeight') }}:</strong> {{ slotProps.data.growthHeightMin }} - {{ slotProps.data.growthHeightMax }} cm</div>
+          <div class="flex-1"><strong>{{ $t('funFact') }}:</strong> {{ slotProps.data.funFact }}</div>
         </div>
       </template>
       <Column field="name" header="Name"/>
@@ -54,10 +55,11 @@ const plants = ref([])
 const plantsByUser = ref([])
 const userPlant = ref([])
 const expandedPlants = ref([])
+const deficientPlant = ref(false)
 const environmentalConditions = ref([
-  { name: 'Temperature', unit: '°C', value: 20, icon: ['fas', 'thermometer-half'], iconColor: '#FF9999' },
-  { name: 'Humidity', unit: '%', value: 65, icon: ['fas', 'tint'], iconColor: '#99C2FF' },
-  { name: 'Light Intensity', unit: 'Lux', value: 1800, icon: ['fas', 'sun'], iconColor: '#FFF699' }]) // Hier werden die Umweltbedingungsdaten aus der Tabelle "environmentalcondition" gespeichert
+  { name: 'Temperature', unit: '°C', value: 0, icon: ['fas', 'thermometer-half'], iconColor: '#FF9999' },
+  { name: 'Humidity', unit: '%', value: 0, icon: ['fas', 'tint'], iconColor: '#99C2FF' },
+  { name: 'Light Intensity', unit: 'Lux', value: 0, icon: ['fas', 'sun'], iconColor: '#FFF699' }]) // Hier werden die Umweltbedingungsdaten aus der Tabelle "environmentalcondition" gespeichert
 const environmentalConditionByPlant = ref([])
 const filterChosen = ref(-1)
 const filterPlant = (newValue) => filterChosen.value = newValue
@@ -139,8 +141,9 @@ const addUserPlant = (plantChosen) => {
 function setStatus() {
   plantsByUser.value.forEach((plant) => {
     const matchingCondition = environmentalConditionByPlant.find((condition) => condition.plantID === plant.ID)
+    deficientPlant.value = false
 
-    let status = "Deficient"
+    let status;
     if (
       humidity >= matchingCondition.idealHumMin && humidity <= matchingCondition.idealHumMax &&
       lightIntensity >= matchingCondition.idealLightMin && lightIntensity <= matchingCondition.idealLightMax &&
@@ -151,18 +154,17 @@ function setStatus() {
       lightIntensity >= matchingCondition.acceptLightMin && lightIntensity <= matchingCondition.acceptLightMax &&
       temperature >= matchingCondition.acceptTempMin && temperature <= matchingCondition.acceptTempMax
     ) status = "Acceptable"
+    else {
+      status = "Deficient"
+      deficientPlant.value = true
+    }
 
     plant.status = status
   })
 }
 
-onMounted(async () => {
-  if (!store.getters.getUser) router.push('/start')
-  else {
-    await getPlants()
-    await getUserPlant()
-    await getEnvironmentalConditionByPlant()
-    try {
+async function getEnvironmentalCondition(){
+  try {
       const response = await axios.get('http://192.168.178.31:80/environmentalCondition')
       environmentalConditions.value[2].value = response.data.lightIntensity
       environmentalConditions.value[1].value = response.data.humidity
@@ -171,6 +173,15 @@ onMounted(async () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+}
+
+onMounted(async () => {
+  if (!store.getters.getUser) router.push('/start')
+  else {
+    await getPlants()
+    await getUserPlant()
+    await getEnvironmentalConditionByPlant()
+    setInterval(getEnvironmentalCondition, 60000)
   }
 })
 </script>

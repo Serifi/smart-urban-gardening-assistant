@@ -13,7 +13,9 @@
               :class="{ 'bg-[#E0F9E0]': filterChosen === index }"
               @click="toggleFilter(index)">
               <div class="flex items-center">
-                <font-awesome-icon :icon="card.icon" class="text-[32px]" :style="{ 'color': card.iconColor }" />
+                <client-only>
+                  <font-awesome-icon :icon="card.icon" class="text-[32px]" :style="{ 'color': card.iconColor }" />
+                </client-only>
                 <div class="mx-4 h-full border-l border-gray" />
                 <div class="flex flex-col">
                   <div class="text-sm">{{ card.name }}</div>
@@ -29,7 +31,9 @@
       <div class="lg:w-[33%] flex lg:flex-row flex-col mb-4">
         <div v-for="(card, index) in props.environmentalConditions" :key="index" class="flex-1 mx-4 mt-6">
           <Card class="flex flex-col justify-center text-center bg-white rounded py-4 px-6 h-full" shadow>
-            <font-awesome-icon :icon="card.icon" class="text-[32px] mb-4" :style="{'color': card.iconColor }"/>
+            <client-only>
+              <font-awesome-icon :icon="card.icon" class="text-[32px] mb-4" :style="{'color': card.iconColor }"/>
+            </client-only>
             <div class="border-b border-gray my-2"></div>
             <div class="text-sm">{{ card.name }}</div>
             <div class="text-2xl font-bold">{{ card.value }}{{ card.unit }}</div>
@@ -41,7 +45,6 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import axios from 'axios'
 
 const emit = defineEmits(["filter-plant"])
 const props = defineProps(['plants', 'environmentalConditions'])
