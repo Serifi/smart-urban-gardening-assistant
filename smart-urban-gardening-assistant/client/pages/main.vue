@@ -57,9 +57,9 @@ const userPlant = ref([])
 const expandedPlants = ref([])
 const deficientPlant = ref(false)
 const environmentalConditions = ref([
-  { name: 'Temperature', unit: '°C', value: 0, icon: ['fas', 'thermometer-half'], iconColor: '#FF9999' },
-  { name: 'Humidity', unit: '%', value: 0, icon: ['fas', 'tint'], iconColor: '#99C2FF' },
-  { name: 'Light Intensity', unit: 'Lux', value: 0, icon: ['fas', 'sun'], iconColor: '#FFF699' }]) // Hier werden die Umweltbedingungsdaten aus der Tabelle "environmentalcondition" gespeichert
+  { name: 'Temperature', unit: '°C', value: 14, icon: ['fas', 'thermometer-half'], iconColor: '#FF9999' },
+  { name: 'Humidity', unit: '%', value: 45, icon: ['fas', 'tint'], iconColor: '#99C2FF' },
+  { name: 'Light Intensity', unit: 'Lux', value: 600, icon: ['fas', 'sun'], iconColor: '#FFF699' }]) // Hier werden die Umweltbedingungsdaten aus der Tabelle "environmentalcondition" gespeichert
 const environmentalConditionByPlant = ref([])
 const filterChosen = ref(-1)
 const filterPlant = (newValue) => filterChosen.value = newValue
@@ -139,11 +139,15 @@ const addUserPlant = (plantChosen) => {
 }
 
 function setStatus() {
-  plantsByUser.value.forEach((plant) => {
-    const matchingCondition = environmentalConditionByPlant.find((condition) => condition.plantID === plant.ID)
-    deficientPlant.value = false
+  deficientPlant.value = false
 
-    let status;
+  plantsByUser.value.forEach((plant) => {
+    const matchingCondition = environmentalConditionByPlant.value.find((condition) => condition.plantID === plant.ID)
+    const lightIntensity = environmentalConditions.value[2].value
+    const humidity = environmentalConditions.value[1].value
+    const temperature = environmentalConditions.value[0].value
+
+    let status
     if (
       humidity >= matchingCondition.idealHumMin && humidity <= matchingCondition.idealHumMax &&
       lightIntensity >= matchingCondition.idealLightMin && lightIntensity <= matchingCondition.idealLightMax &&
@@ -181,7 +185,7 @@ onMounted(async () => {
     await getPlants()
     await getUserPlant()
     await getEnvironmentalConditionByPlant()
-    setInterval(getEnvironmentalCondition, 60000)
+    setInterval(getEnvironmentalCondition, 60000) //Umweltbedingungen minütlich einlesen
   }
 })
 </script>
